@@ -26,12 +26,12 @@
             <select id="property" name="property">
                 <option value="authentication">Authentication</option>
                 <option value="access_control">Access Control</option>
-                <option value="encryption">Encryption Integrity</option>
+                <option value="integrity">Integrity</option>
             </select>
 
           <!-- Button is displayed and when clicked on, triggers the verification function.
            This uses JavaScript to call the backend instead of submitting the form automatically.-->
-            <button type="button">Verify</button>
+            <button type="button" id="verify-btn">Verify</button>
         </form>
 
 <!-- This output code block is responsible for displaying the raw verification result 
@@ -40,6 +40,10 @@
   <p><strong>Output:</strong></p>
   <p id="output">Waiting for verification...</p>
 </div>
+
+<button id="download-proof" style="display:none; margin-top:10px;">
+  View Proof File
+</button>
 
 <p id="backend-explanation" style="margin-top:10px; color:#555;"></p>
 
@@ -61,26 +65,36 @@
  * based on the response.
  * 
  * */
-  document.querySelector("button").onclick = async () => {
+    document.querySelector("#verify-btn").onclick = async () => {
     const property = document.querySelector("#property").value;
 
-    try {
+    
       // Calls the backend verification endpoint
       const response = await fetch(`/verify?property=${property}`);
       const data = await response.json();
 
       // Displays the backend output
-      document.getElementById("output").innerText = data.result;
+      document.getElementById("output").innerText = data.response.result;
       
-      document.getElementById("backend-explanation").innerText = data.explanation;
+      document.getElementById("backend-explanation").innerText = data.response.explanation;
 
       // Displays the explanation of the verification result
-      showExplanation(property, data.result);
-    } catch (error) {
-      // Error handling done here
-      document.getElementById("output").innerText =
-        "Verification service not available.";
-    }
+      showExplanation(property, data.response.result);
+
+      // SHOW PROOF BUTTON
+      
+      const proofBtn = document.getElementById("download-proof");
+      
+      if (data.response.proofFile) {
+        proofBtn.style.display = "inline-block";
+        
+        proofBtn.onclick = () => {
+          window.open(`/proofs/${data.response.proofFile}`, "_blank");
+  };
+
+   } else {
+    proofBtn.style.display = "none";
+  }
   };
 
 

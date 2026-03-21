@@ -24,6 +24,7 @@ const PORT = 3000;
  * 
  */
 app.use(express.static(path.join(__dirname, "../frontend")));
+app.use("/proofs", express.static(__dirname));
 
 /**
  * Verification endpoint
