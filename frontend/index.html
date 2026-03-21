@@ -22,6 +22,13 @@
      Encryption Integrity are included for later implementation. -->
 
         <form id="verification-form">
+          <label for="model-input">Enter system model:</label>
+          <textarea id="model-input" rows="6" style="width:100%; margin-bottom:10px;">
+            Alice: authorised
+            Bob: authorised
+            Eve: unauthorised
+          </textarea>
+
             <label for="property">Choose a property:</label>
             <select id="property" name="property">
                 <option value="authentication">Authentication</option>
@@ -42,7 +49,7 @@
 </div>
 
 <button id="download-proof" style="display:none; margin-top:10px;">
-  View Proof File
+  View Formal Proof File (Lean)
 </button>
 
 <p id="backend-explanation" style="margin-top:10px; color:#555;"></p>
@@ -67,9 +74,17 @@
  * */
 document.querySelector("#verify-btn").onclick = async () => {
   const property = document.querySelector("#property").value;
+  const model = document.querySelector("#model-input").value;
 
   try {
-    const response = await fetch(`/verify?property=${property}`);
+    const response = await fetch(`/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ property, model })
+    });
+    
     const data = await response.json();
 
     // Output

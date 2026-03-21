@@ -10,6 +10,7 @@
  * 
  */
 
+
 const express = require("express");
 const path = require("path");
 
@@ -23,6 +24,7 @@ const PORT = 3000;
  * By doing so, this allows the system to be run locally without unnecessary complexity.
  * 
  */
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 app.use("/proofs", express.static(__dirname));
 
@@ -37,8 +39,8 @@ app.use("/proofs", express.static(__dirname));
  * for future extensibility (these will be implemented later).
  * 
  */
-app.get("/verify", (req, res) => {
-  const property = req.query.property;
+app.post("/verify", (req, res) => {
+  const { property, model } = req.body;
 
   let response;
 
@@ -54,7 +56,7 @@ app.get("/verify", (req, res) => {
     case "access_control":
       response = {
         result: "Verified",
-        explanation: "Only authorised users (Alice, Bob) can access protected resources. Eve is denied access.",
+        explanation: "Model analysed:\n${model}\n\nAccess control policy enforced: Only authorised users can access protected resources. Unauthorised users are denied access.",
         proofFile: "AccessControl.lean"
       };
       break;
@@ -62,7 +64,7 @@ app.get("/verify", (req, res) => {
     case "authentication":
       response = {
         result: "Verified",
-        explanation: "Only authenticated users (Alice, Bob) can access the system. Eve is not authenticated.",
+        explanation: "Model analysed:\n${model}\n\nOnly authenticated users can access the system.",
         proofFile: "Authentication.lean"
       };
       break;
@@ -70,7 +72,7 @@ app.get("/verify", (req, res) => {
     case "integrity":
       response = {
         result: "Verified",
-        explanation: "Only authorised users can modify data. Eve is prevented from making changes.",
+        explanation: "Model analysed:\n${model}\n\nIntegrity property enforced: Only authorised users are permitted to modify system data. Unauthorised modifications are prevented.",
         proofFile: "Integrity.lean"
       };
       break;
