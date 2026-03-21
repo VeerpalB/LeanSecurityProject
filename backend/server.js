@@ -85,7 +85,7 @@ app.get("/verify", (req, res) => {
 /**
  * The line below returns the verification result to the frontend as a JSON response.
  */
-  res.json({ response });
+  res.json(response);
 });
 
 /**

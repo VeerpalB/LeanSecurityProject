@@ -41,6 +41,8 @@
   <p id="output">Waiting for verification...</p>
 </div>
 
+<p id="backend-explanation" style="margin-top:10px; color:#555;"></p>
+
 <!-- This explanation-panel code block shows a human-readable explanation of the formal 
  verification result.
  This is hidden and is only shown after verification is executed.-->
@@ -68,10 +70,12 @@
       const data = await response.json();
 
       // Displays the backend output
-      document.getElementById("output").innerText = data.output;
+      document.getElementById("output").innerText = data.result;
+      
+      document.getElementById("backend-explanation").innerText = data.explanation;
       
       // Displays the explanation of the verification result
-      showExplanation(property, data.output);
+      showExplanation(property, data.result);
     } catch (error) {
       // Error handling done here
       document.getElementById("output").innerText =
