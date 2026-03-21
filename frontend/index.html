@@ -65,37 +65,44 @@
  * based on the response.
  * 
  * */
-    document.querySelector("#verify-btn").onclick = async () => {
-    const property = document.querySelector("#property").value;
+document.querySelector("#verify-btn").onclick = async () => {
+  const property = document.querySelector("#property").value;
 
-    
-      // Calls the backend verification endpoint
-      const response = await fetch(`/verify?property=${property}`);
-      const data = await response.json();
+  try {
+    const response = await fetch(`/verify?property=${property}`);
+    const data = await response.json();
 
-      // Displays the backend output
-      document.getElementById("output").innerText = data.response.result;
-      
-      document.getElementById("backend-explanation").innerText = data.response.explanation;
+    // Output
+    document.getElementById("output").innerText = data.response.result;
 
-      // Displays the explanation of the verification result
-      showExplanation(property, data.response.result);
+    // Backend explanation
+    document.getElementById("backend-explanation").innerText =
+      data.response.explanation;
 
-      // SHOW PROOF BUTTON
-      
-      const proofBtn = document.getElementById("download-proof");
-      
-      if (data.response.proofFile) {
-        proofBtn.style.display = "inline-block";
-        
-        proofBtn.onclick = () => {
-          window.open(`/proofs/${data.response.proofFile}`, "_blank");
-  };
+    // Explanation panel
+    showExplanation(property, data.response.result);
 
-   } else {
-    proofBtn.style.display = "none";
+    // Proof button
+    const proofBtn = document.getElementById("download-proof");
+
+    if (data.response.proofFile) {
+      proofBtn.style.display = "inline-block";
+
+      proofBtn.onclick = () => {
+        window.open(`/proofs/${data.response.proofFile}`, "_blank");
+      };
+    } else {
+      proofBtn.style.display = "none";
+    }
+
+  } catch (error) {
+    console.error(error);
+
+    document.getElementById("output").innerText =
+      "Error connecting to backend";
   }
-  };
+};
+
 
 
 /**
