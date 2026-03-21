@@ -84,7 +84,7 @@ document.querySelector("#verify-btn").onclick = async () => {
       },
       body: JSON.stringify({ property, model })
     });
-    
+
     const data = await response.json();
 
     // Output
@@ -128,6 +128,27 @@ document.querySelector("#verify-btn").onclick = async () => {
  * 
  * */
 function showExplanation(property, output) {
+
+  const modelText = document.querySelector("#model-input").value;
+  const lines = modelText.split("\n");
+  
+  let authorisedUsers = [];
+  let unauthorisedUsers = [];
+  
+  lines.forEach(line => {
+    const lower = line.toLowerCase();
+    
+    if (lower.includes("authorised")) {
+      const name = line.split(":")[0].trim();
+      authorisedUsers.push(name);
+    }
+    
+    if (lower.includes("unauthorised")) {
+      const name = line.split(":")[0].trim();
+      unauthorisedUsers.push(name);
+    }
+  });
+  
   const panel = document.getElementById("explanation-panel");
   const list = document.getElementById("explanation-list");
 
@@ -146,8 +167,8 @@ function showExplanation(property, output) {
   ) {
     const explanations = [
       "Property verified: Access Control Security",
-      "Verified users: Alice, Bob",
-      "Rejected users: Eve",
+      `Verified users: ${authorisedUsers.join(", ")}`,
+      `Rejected users: ${unauthorisedUsers.join(", ")}`,
       "Reason: Only authorised users are permitted access to protected resources."
     ];
 
@@ -176,9 +197,30 @@ if (
 ) {
   const explanations = [
     "Property verified: Authentication Security",
-    "Authenticated users: Alice, Bob",
-    "Unauthenticated user: Eve",
+    `Authenticated users: ${authorisedUsers.join(", ")}`,
+    `Unauthenticated users: ${unauthorisedUsers.join(", ")}`,
     "Reason: Only authenticated users are permitted access to the system."
+  ];
+
+  explanations.forEach(text => {
+    const li = document.createElement("li");
+    li.innerText = text;
+    list.appendChild(li);
+  });
+
+  return;
+}
+
+// INTEGRITY - VERIFIED CASE
+if (
+  property === "integrity" &&
+  output.toLowerCase().includes("verified")
+) {
+  const explanations = [
+    "Property verified: Integrity",
+    `Authorised users (can modify): ${authorisedUsers.join(", ")}`,
+    `Unauthorised users (cannot modify): ${unauthorisedUsers.join(", ")}`,
+    "Reason: Only authorised users are permitted to modify system data."
   ];
 
   explanations.forEach(text => {
