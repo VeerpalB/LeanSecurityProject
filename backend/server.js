@@ -39,7 +39,7 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 app.get("/verify", (req, res) => {
   const property = req.query.property;
 
-  let output;
+  let response;
 
   /**
    * Connects the path to the request based on the selected security property.
@@ -51,22 +51,41 @@ app.get("/verify", (req, res) => {
    */
   switch (property) {
     case "access_control":
-      output = "Access control policy formally verified in Lean.";
+      response = {
+        result: "Verified",
+        explanation: "Only authorised users (Alice, Bob) can access protected resources. Eve is denied access.",
+        proofFile: "AccessControl.lean"
+      };
       break;
+
     case "authentication":
-      output = "Authentication verification not yet implemented.";
+      response = {
+        result: "Verified",
+        explanation: "Only authenticated users (Alice, Bob) can access the system. Eve is not authenticated.",
+        proofFile: "Authentication.lean"
+      };
       break;
-    case "encryption":
-      output = "Encryption integrity verification planned for future work.";
+
+    case "integrity":
+      response = {
+        result: "Verified",
+        explanation: "Only authorised users can modify data. Eve is prevented from making changes.",
+        proofFile: "Integrity.lean"
+      };
       break;
+
     default:
-      output = "Unknown property.";
+      response = {
+        result: "Error",
+        explanation: "Unknown property selected.",
+        proofFile: null
+      };
   }
 
 /**
  * The line below returns the verification result to the frontend as a JSON response.
  */
-  res.json({ output });
+  res.json({ response });
 });
 
 /**
