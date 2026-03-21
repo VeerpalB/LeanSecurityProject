@@ -73,23 +73,23 @@ document.querySelector("#verify-btn").onclick = async () => {
     const data = await response.json();
 
     // Output
-    document.getElementById("output").innerText = data.response.result;
+    document.getElementById("output").innerText = data.result;
 
     // Backend explanation
     document.getElementById("backend-explanation").innerText =
-      data.response.explanation;
+      data.explanation;
 
     // Explanation panel
-    showExplanation(property, data.response.result);
+    showExplanation(property, data.result);
 
     // Proof button
     const proofBtn = document.getElementById("download-proof");
 
-    if (data.response.proofFile) {
+    if (data.proofFile) {
       proofBtn.style.display = "inline-block";
 
       proofBtn.onclick = () => {
-        window.open(`/proofs/${data.response.proofFile}`, "_blank");
+        window.open(`/proofs/${data.proofFile}`, "_blank");
       };
     } else {
       proofBtn.style.display = "none";
