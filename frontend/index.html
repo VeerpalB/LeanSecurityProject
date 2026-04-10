@@ -10,22 +10,16 @@
 <body>
     <div class="container">
 
-    <!-- Main heading for the frontend interface of prototype -->
-        <h1> Secure System Verification</h1>
-
-    <!-- Verification form displays a drop-down menu, allowing the user to select one out of three 
-     security properties. 
-     At the IPD stage, Access Control is fully implemented, whilst User Authentication and 
-     Encryption Integrity are included for later implementation. -->
+        <h1>Secure System Verification</h1>
 
         <form id="verification-form">
+
           <label for="model-input">Enter system model:</label>
           <p><em>Define users and their permissions for verification:</em></p>
           <textarea id="model-input" rows="6" style="width:100%; margin-bottom:10px;">
             Alice: authorised
             Bob: authorised
-            Eve: unauthorised
-          </textarea>
+            Eve: unauthorised</textarea>
 
             <label for="property">Choose a security property:</label>
             <select id="property" name="property">
@@ -34,207 +28,177 @@
                 <option value="integrity">Integrity</option>
             </select>
 
-          <!-- Button is displayed and when clicked on, triggers the verification function.
-           This uses JavaScript to call the backend instead of submitting the form automatically.-->
             <button type="button" id="verify-btn">Verify</button>
         </form>
 
-<!-- This output code block is responsible for displaying the raw verification result 
- returned by the backend. -->
-<div class="output">
-  <p><strong>Output:</strong></p>
-  <p id="output">Waiting for verification...</p>
-</div>
+        <!-- Raw result output -->
+        <div class="output">
+          <p><strong>Output:</strong></p>
+          <p id="output">Waiting for verification...</p>
+        </div>
 
-<button id="download-proof" style="display:none; margin-top:10px;">
-  View Formal Proof File (Lean)
-</button>
+        <!-- Backend explanation text -->
+        <p id="backend-explanation" style="margin-top:10px; color:#555; white-space: pre-wrap;"></p>
 
-<p id="backend-explanation" style="margin-top:10px; color:#555;"></p>
+        <!-- Human-readable explanation panel -->
+        <div id="explanation-panel" style="display:none; margin-top:20px; padding:15px; border:1px solid #ccc;">
+          <p><strong>Verification Explanation:</strong></p>
+          <ul id="explanation-list"></ul>
+        </div>
 
-<!-- This explanation-panel code block shows a human-readable explanation of the formal 
- verification result.
- This is hidden and is only shown after verification is executed.-->
-<div id="explanation-panel" style="display:none; margin-top:20px; padding:15px; border:1px solid #ccc;">
-  <p><strong>Verification Explanation:</strong></p>
-  <ul id="explanation-list"></ul>
-</div>
+        <!-- Generated Lean source panel — shown after verification -->
+        <div id="lean-source-panel" style="display:none; margin-top:20px;">
+          <p><strong>Generated Lean 4 Proof (submitted to verifier):</strong></p>
+          <pre id="lean-source-display" style="
+            background:#1e1e1e;
+            color:#d4d4d4;
+            padding:15px;
+            border-radius:6px;
+            overflow-x:auto;
+            font-size:13px;
+            line-height:1.5;
+          "></pre>
+        </div>
+
+        <!-- Button to open the static reference proof file -->
+        <button id="download-proof" style="display:none; margin-top:10px;">
+          View Reference Proof File (Lean)
+        </button>
 
     </div>
 
 <script>
 /**
  * Event handler for the Verify button.
- * 
- * This sends a request to the backend verification endpoint and updates the UI
- * based on the response.
- * 
- * */
+ *
+ * Sends the model and selected property to the backend, then updates
+ * all UI panels based on the response.
+ */
 document.querySelector("#verify-btn").onclick = async () => {
   const property = document.querySelector("#property").value;
   const model = document.querySelector("#model-input").value;
 
+  // Show a loading state while Lean runs
+  document.getElementById("output").innerText = "Running formal verification...";
+  document.getElementById("backend-explanation").innerText = "";
+  document.getElementById("explanation-panel").style.display = "none";
+  document.getElementById("lean-source-panel").style.display = "none";
+
   try {
     const response = await fetch(`/verify`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ property, model })
     });
 
     const data = await response.json();
 
-    // Output
+    // Main result
     document.getElementById("output").innerText = data.result;
 
     // Backend explanation
-    document.getElementById("backend-explanation").innerText =
-      data.explanation;
+    document.getElementById("backend-explanation").innerText = data.explanation || "";
 
-    // Explanation panel
-    showExplanation(property, data.result);
+    // Human-readable explanation panel
+    showExplanation(property, data.result, model);
 
-    // Proof button
+    // Generated Lean source panel
+    if (data.generatedLean) {
+      document.getElementById("lean-source-display").innerText = data.generatedLean;
+      document.getElementById("lean-source-panel").style.display = "block";
+    }
+
+    // Reference proof file button
     const proofBtn = document.getElementById("download-proof");
-
     if (data.proofFile) {
       proofBtn.style.display = "inline-block";
-
-      proofBtn.onclick = () => {
-        window.open(`/proofs/${data.proofFile}`, "_blank");
-      };
+      proofBtn.onclick = () => window.open(`/proofs/${data.proofFile}`, "_blank");
     } else {
       proofBtn.style.display = "none";
     }
 
   } catch (error) {
     console.error(error);
-
-    document.getElementById("output").innerText =
-      "Error connecting to backend";
+    document.getElementById("output").innerText = "Error connecting to backend.";
   }
 };
 
-
-
 /**
- * The showExplanation function is implemented here and is used to
- * generate a human-readable explanation of the verification result.
- * 
- * This bridges formal verification and user understanding.
- * 
- * */
-function showExplanation(property, output) {
+ * showExplanation
+ *
+ * Parses the model text to extract user lists and renders a human-readable
+ * explanation of the verification result in the explanation panel.
+ */
+function showExplanation(property, output, modelText) {
+  const lines = (modelText || "").split("\n");
 
-  const modelText = document.querySelector("#model-input").value;
-  const lines = modelText.split("\n");
-  
   let authorisedUsers = [];
   let unauthorisedUsers = [];
-  
+
   lines.forEach(line => {
     const lower = line.toLowerCase();
-    
-    if (lower.includes("authorised")) {
-      const name = line.split(":")[0].trim();
+    const name = line.split(":")[0].trim();
+    if (!name) return;
+
+    if (lower.includes("unauthorised")) {
+      unauthorisedUsers.push(name);
+    } else if (lower.includes("authorised")) {
       authorisedUsers.push(name);
     }
-    
-    if (lower.includes("unauthorised")) {
-      const name = line.split(":")[0].trim();
-      unauthorisedUsers.push(name);
-    }
   });
-  
+
   const panel = document.getElementById("explanation-panel");
   const list = document.getElementById("explanation-list");
-
-  // Clears the previous explanation
   list.innerHTML = "";
   panel.style.display = "block";
 
-  /** ACCESS CONTROL — VERIFIED CASE
-   * Linked directly to the Lean proof implemented in the formal verification
-   * layer.
-   * 
-   * */
-  if (
-    property === "access_control" &&
-    output.toLowerCase().includes("verified")
-  ) {
-    const explanations = [
-      "Property verified: Access Control Security",
-      `Verified users: ${authorisedUsers.join(", ")}`,
-      `Rejected users: ${unauthorisedUsers.join(", ")}`,
-      "Reason: Only authorised users are permitted access to protected resources."
+  const verified = output.toLowerCase().includes("verified");
+
+  const propertyLabels = {
+    access_control: "Access Control Security",
+    authentication: "Authentication Security",
+    integrity:      "Integrity"
+  };
+
+  const reasonMap = {
+    access_control: "Only authorised users are permitted access to protected resources.",
+    authentication: "Only authenticated users are permitted access to the system.",
+    integrity:      "Only authorised users are permitted to modify system data."
+  };
+
+  const authorisedLabel = {
+    access_control: "Verified users",
+    authentication: "Authenticated users",
+    integrity:      "Authorised users (can modify)"
+  };
+
+  const unauthorisedLabel = {
+    access_control: "Rejected users",
+    authentication: "Unauthenticated users",
+    integrity:      "Unauthorised users (cannot modify)"
+  };
+
+  if (verified && authorisedUsers.length > 0) {
+    const items = [
+      `Property verified: ${propertyLabels[property] || property}`,
+      `${authorisedLabel[property] || "Authorised"}: ${authorisedUsers.join(", ")}`,
+      `${unauthorisedLabel[property] || "Unauthorised"}: ${unauthorisedUsers.join(", ") || "none"}`,
+      `Reason: ${reasonMap[property] || ""}`
     ];
 
-    explanations.forEach(text => {
+    items.forEach(text => {
       const li = document.createElement("li");
       li.innerText = text;
       list.appendChild(li);
     });
 
-    return;
+  } else {
+    const li = document.createElement("li");
+    li.innerText = verified
+      ? "Property verified with the provided model."
+      : "Verification failed. Check the Lean output above for details.";
+    list.appendChild(li);
   }
-
-  // ACCESS CONTROL — FAILED CASE (Included for future extensibility)
-  if (property === "access_control") {
-    const li = document.createElement("li");
-    li.innerText =
-      "Access control property could not be verified.";
-    list.appendChild(li);
-    return;
-  }
-
-// AUTHENTICATION — VERIFIED CASE
-if (
-  property === "authentication" &&
-  output.toLowerCase().includes("verified")
-) {
-  const explanations = [
-    "Property verified: Authentication Security",
-    `Authenticated users: ${authorisedUsers.join(", ")}`,
-    `Unauthenticated users: ${unauthorisedUsers.join(", ")}`,
-    "Reason: Only authenticated users are permitted access to the system."
-  ];
-
-  explanations.forEach(text => {
-    const li = document.createElement("li");
-    li.innerText = text;
-    list.appendChild(li);
-  });
-
-  return;
-}
-
-// INTEGRITY - VERIFIED CASE
-if (
-  property === "integrity" &&
-  output.toLowerCase().includes("verified")
-) {
-  const explanations = [
-    "Property verified: Integrity",
-    `Authorised users (can modify): ${authorisedUsers.join(", ")}`,
-    `Unauthorised users (cannot modify): ${unauthorisedUsers.join(", ")}`,
-    "Reason: Only authorised users are permitted to modify system data."
-  ];
-
-  explanations.forEach(text => {
-    const li = document.createElement("li");
-    li.innerText = text;
-    list.appendChild(li);
-  });
-
-  return;
-}
-
-  // OTHER PROPERTIES (NOT IMPLEMENTED YET AT THE IPD STAGE)
-  const li = document.createElement("li");
-  li.innerText =
-    "This security property is not yet implemented in the current prototype.";
-  list.appendChild(li);
 }
 </script>
 
