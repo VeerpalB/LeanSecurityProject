@@ -1,206 +1,726 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure System Verification</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure System Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Extensions to style.css for new UI components ── */
+
+    /* Preset scenario buttons */
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .preset-btn {
+      width: auto;
+      padding: 6px 14px;
+      font-size: 0.82em;
+      margin-top: 0;
+      border-radius: 8px;
+      background-color: #f3f4f6;
+      color: #1a237e;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .preset-btn:hover {
+      background-color: #1a237e;
+      color: white;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 0.85em;
+      font-weight: bold;
+      color: #1a237e;
+      margin: 16px 0 8px;
+      text-align: left;
+      padding-left: 10%;
+    }
+
+    /* User table header */
+    .user-table-header {
+      display: grid;
+      grid-template-columns: 1fr 200px 40px;
+      gap: 8px;
+      padding: 0 10% 6px;
+      font-size: 0.78em;
+      font-weight: bold;
+      color: #555;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 6px;
+      text-align: left;
+    }
+
+    /* Each user row */
+    #user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 10%;
+      margin-bottom: 10px;
+    }
+
+    .user-row {
+      display: grid;
+      grid-template-columns: 1fr 200px 40px;
+      gap: 8px;
+      align-items: center;
+      animation: rowIn 0.18s ease;
+    }
+
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Name input inside rows */
+    .user-name-input {
+      font-family: Arial, sans-serif;
+      font-size: 0.9em;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .user-name-input:focus {
+      outline: none;
+      border-color: #1a237e;
+    }
+
+    .user-name-input.invalid {
+      border-color: #e53935;
+    }
+
+    /* Authorised / Unauthorised toggle */
+    .toggle-wrap {
+      display: flex;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 36px;
+    }
+
+    .toggle-wrap input[type="radio"] { display: none; }
+
+    .toggle-wrap label {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78em;
+      cursor: pointer;
+      color: #555;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+      white-space: nowrap;
+      padding: 0 4px;
+    }
+
+    .toggle-wrap input[value="authorised"]:checked + label {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .toggle-wrap input[value="unauthorised"]:checked + label {
+      background-color: #ffebee;
+      color: #c62828;
+      font-weight: bold;
+    }
+
+    /* Remove button */
+    .remove-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: white;
+      color: #999;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+
+    .remove-btn:hover {
+      border-color: #e53935;
+      color: #e53935;
+      background: #fff5f5;
+    }
+
+    /* Add user button */
+    .add-user-btn {
+      background-color: white;
+      color: #1a237e;
+      border: 1px dashed #ccc;
+      font-size: 0.85em;
+      margin-top: 4px;
+      transition: 0.2s;
+    }
+
+    .add-user-btn:hover {
+      background-color: #f3f4f6;
+      border-color: #1a237e;
+    }
+
+    /* Property selector cards */
+    .property-grid {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 10px 0 4px;
+    }
+
+    .prop-option { display: none; }
+
+    .prop-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 14px 18px;
+      cursor: pointer;
+      transition: 0.2s;
+      min-width: 120px;
+    }
+
+    .prop-label:hover {
+      border-color: #1a237e;
+    }
+
+    .prop-option:checked + .prop-label {
+      border-color: #1a237e;
+      background-color: #e8eaf6;
+    }
+
+    .prop-icon { font-size: 22px; }
+
+    .prop-name {
+      font-size: 0.8em;
+      color: #1a237e;
+      font-weight: bold;
+    }
+
+    /* Validation hint */
+    .hint {
+      font-size: 0.8em;
+      color: #555;
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 6px 10% 10px;
+      text-align: left;
+      border-left: 3px solid #ccc;
+    }
+
+    .hint.warn {
+      border-left-color: #e53935;
+      color: #c62828;
+      background: #fff5f5;
+    }
+
+    .hint.ok {
+      border-left-color: #2e7d32;
+      color: #2e7d32;
+      background: #f1f8f1;
+    }
+
+    /* Verify button loading state */
+    #verify-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Result status banner */
+    .result-status {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.95em;
+      margin-bottom: 12px;
+    }
+
+    .result-status.verified {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+
+    .result-status.failed {
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+    }
+
+    .result-status.error-state {
+      background: #fff8e1;
+      color: #f57f17;
+      border: 1px solid #ffe082;
+    }
+
+    /* Explanation list */
+    #explanation-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+
+    #explanation-list li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.88em;
+      border-left: 3px solid #1a237e;
+    }
+
+    /* Lean source toggle */
+    .lean-toggle {
+      background: none;
+      border: none;
+      color: #1a237e;
+      font-size: 0.82em;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 14px;
+      width: auto;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .lean-toggle:hover {
+      color: #3949ab;
+      background: none;
+    }
+
+    #lean-source-wrap { display: none; margin-top: 10px; }
+
+    pre#lean-source-display {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 0.82em;
+      line-height: 1.6;
+      overflow-x: auto;
+      text-align: left;
+      white-space: pre;
+    }
+
+    /* Divider between form sections */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 20px 0;
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
+<div class="container">
 
-        <h1>Secure System Verification</h1>
+  <h1>Secure System Verification</h1>
 
-        <form id="verification-form">
+  <form id="verification-form">
 
-          <label for="model-input">Enter system model:</label>
-          <p><em>Define users and their permissions for verification:</em></p>
-          <textarea id="model-input" rows="6" style="width:100%; margin-bottom:10px;">
-            Alice: authorised
-            Bob: authorised
-            Eve: unauthorised</textarea>
+    <!-- ── Preset Scenarios ── -->
+    <p style="font-size:0.85em; color:#555; margin-bottom:8px;">
+      <em>Load a preset scenario or define your own model below:</em>
+    </p>
+    <div class="preset-bar">
+      <button type="button" class="preset-btn" onclick="loadPreset('basic')">
+        ✅ Basic (Alice + Bob)
+      </button>
+      <button type="button" class="preset-btn" onclick="loadPreset('attack')">
+        ⚠️ Attack Scenario
+      </button>
+      <button type="button" class="preset-btn" onclick="loadPreset('allauthd')">
+        🔵 All Authorised
+      </button>
+      <button type="button" class="preset-btn" onclick="loadPreset('large')">
+        👥 Larger Team
+      </button>
+    </div>
 
-            <label for="property">Choose a security property:</label>
-            <select id="property" name="property">
-                <option value="authentication">Authentication</option>
-                <option value="access_control">Access Control</option>
-                <option value="integrity">Integrity</option>
-            </select>
+    <hr class="section-divider">
 
-            <button type="button" id="verify-btn">Verify</button>
-        </form>
+    <!-- ── User Model Builder ── -->
+    <div class="section-label">Define users and their access level:</div>
 
-        <!-- Raw result output -->
-        <div class="output">
-          <p><strong>Output:</strong></p>
-          <p id="output">Waiting for verification...</p>
-        </div>
+    <div class="user-table-header">
+      <span>Username</span>
+      <span>Access Level</span>
+      <span></span>
+    </div>
 
-        <!-- Backend explanation text -->
-        <p id="backend-explanation" style="margin-top:10px; color:#555; white-space: pre-wrap;"></p>
+    <div id="user-list"></div>
 
-        <!-- Human-readable explanation panel -->
-        <div id="explanation-panel" style="display:none; margin-top:20px; padding:15px; border:1px solid #ccc;">
-          <p><strong>Verification Explanation:</strong></p>
-          <ul id="explanation-list"></ul>
-        </div>
+    <div id="model-hint" class="hint">
+      💡 Names must start with a letter and use only letters, numbers, or underscores (e.g. Alice, Bob2, Admin_1)
+    </div>
 
-        <!-- Generated Lean source panel — shown after verification -->
-        <div id="lean-source-panel" style="display:none; margin-top:20px;">
-          <p><strong>Generated Lean 4 Proof (submitted to verifier):</strong></p>
-          <pre id="lean-source-display" style="
-            background:#1e1e1e;
-            color:#d4d4d4;
-            padding:15px;
-            border-radius:6px;
-            overflow-x:auto;
-            font-size:13px;
-            line-height:1.5;
-          "></pre>
-        </div>
+    <button type="button" class="add-user-btn" onclick="addUserRow()">＋ Add user</button>
 
-        <!-- Button to open the static reference proof file -->
-        <button id="download-proof" style="display:none; margin-top:10px;">
-          View Reference Proof File (Lean)
-        </button>
+    <hr class="section-divider">
+
+    <!-- ── Security Property ── -->
+    <label style="font-weight:bold; color:#1a237e;">Choose a security property:</label>
+    <div class="property-grid">
+
+      <div>
+        <input type="radio" name="property" id="prop-auth" class="prop-option" value="authentication" checked>
+        <label for="prop-auth" class="prop-label">
+          <span class="prop-icon">🔑</span>
+          <span class="prop-name">Authentication</span>
+        </label>
+      </div>
+
+      <div>
+        <input type="radio" name="property" id="prop-ac" class="prop-option" value="access_control">
+        <label for="prop-ac" class="prop-label">
+          <span class="prop-icon">🛡️</span>
+          <span class="prop-name">Access Control</span>
+        </label>
+      </div>
+
+      <div>
+        <input type="radio" name="property" id="prop-int" class="prop-option" value="integrity">
+        <label for="prop-int" class="prop-label">
+          <span class="prop-icon">🔒</span>
+          <span class="prop-name">Integrity</span>
+        </label>
+      </div>
 
     </div>
 
+    <!-- ── Verify Button ── -->
+    <button type="button" id="verify-btn" onclick="runVerification()">
+      <span id="btn-text">Verify</span>
+      <div class="spinner" id="btn-spinner"></div>
+    </button>
+
+  </form>
+
+  <!-- ── Output ── -->
+  <div class="output" id="output-box" style="display:none;">
+    <div id="result-status" class="result-status"></div>
+    <div id="explanation-panel">
+      <ul id="explanation-list"></ul>
+    </div>
+    <button type="button" class="lean-toggle" onclick="toggleLean()">▶ Show generated Lean 4 proof</button>
+    <div id="lean-source-wrap">
+      <pre id="lean-source-display"></pre>
+    </div>
+  </div>
+
+</div>
+
 <script>
-/**
- * Event handler for the Verify button.
- *
- * Sends the model and selected property to the backend, then updates
- * all UI panels based on the response.
- */
-document.querySelector("#verify-btn").onclick = async () => {
-  const property = document.querySelector("#property").value;
-  const model = document.querySelector("#model-input").value;
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let userRows = [];
+let rowCounter = 0;
 
-  // Show a loading state while Lean runs
-  document.getElementById("output").innerText = "Running formal verification...";
-  document.getElementById("backend-explanation").innerText = "";
-  document.getElementById("explanation-panel").style.display = "none";
-  document.getElementById("lean-source-panel").style.display = "none";
-
-  try {
-    const response = await fetch(`/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ property, model })
-    });
-
-    const data = await response.json();
-
-    // Main result
-    document.getElementById("output").innerText = data.result;
-
-    // Backend explanation
-    document.getElementById("backend-explanation").innerText = data.explanation || "";
-
-    // Human-readable explanation panel
-    showExplanation(property, data.result, model);
-
-    // Generated Lean source panel
-    if (data.generatedLean) {
-      document.getElementById("lean-source-display").innerText = data.generatedLean;
-      document.getElementById("lean-source-panel").style.display = "block";
-    }
-
-    // Reference proof file button
-    const proofBtn = document.getElementById("download-proof");
-    if (data.proofFile) {
-      proofBtn.style.display = "inline-block";
-      proofBtn.onclick = () => window.open(`/proofs/${data.proofFile}`, "_blank");
-    } else {
-      proofBtn.style.display = "none";
-    }
-
-  } catch (error) {
-    console.error(error);
-    document.getElementById("output").innerText = "Error connecting to backend.";
-  }
+// ---------------------------------------------------------------------------
+// Preset scenarios
+// ---------------------------------------------------------------------------
+const PRESETS = {
+  basic: [
+    { name: "Alice", status: "authorised" },
+    { name: "Bob",   status: "authorised" },
+    { name: "Eve",   status: "unauthorised" }
+  ],
+  attack: [
+    { name: "Alice",   status: "authorised" },
+    { name: "Mallory", status: "unauthorised" },
+    { name: "Eve",     status: "unauthorised" },
+    { name: "Trent",   status: "authorised" }
+  ],
+  allauthd: [
+    { name: "Alice", status: "authorised" },
+    { name: "Bob",   status: "authorised" },
+    { name: "Carol", status: "authorised" }
+  ],
+  large: [
+    { name: "Alice",   status: "authorised" },
+    { name: "Bob",     status: "authorised" },
+    { name: "Carol",   status: "authorised" },
+    { name: "Dave",    status: "authorised" },
+    { name: "Eve",     status: "unauthorised" },
+    { name: "Mallory", status: "unauthorised" }
+  ]
 };
 
-/**
- * showExplanation
- *
- * Parses the model text to extract user lists and renders a human-readable
- * explanation of the verification result in the explanation panel.
- */
-function showExplanation(property, output, modelText) {
-  const lines = (modelText || "").split("\n");
+function loadPreset(key) {
+  userRows = [];
+  rowCounter = 0;
+  document.getElementById("user-list").innerHTML = "";
+  PRESETS[key].forEach(u => addUserRow(u.name, u.status));
+}
 
-  let authorisedUsers = [];
-  let unauthorisedUsers = [];
+// ---------------------------------------------------------------------------
+// User row management
+// ---------------------------------------------------------------------------
+function addUserRow(name = "", status = "authorised") {
+  const id = rowCounter++;
+  userRows.push({ id, name, status });
 
-  lines.forEach(line => {
-    const lower = line.toLowerCase();
-    const name = line.split(":")[0].trim();
-    if (!name) return;
+  const list = document.getElementById("user-list");
+  const row = document.createElement("div");
+  row.className = "user-row";
+  row.dataset.id = id;
 
-    if (lower.includes("unauthorised")) {
-      unauthorisedUsers.push(name);
-    } else if (lower.includes("authorised")) {
-      authorisedUsers.push(name);
-    }
-  });
+  row.innerHTML = `
+    <input
+      type="text"
+      class="user-name-input"
+      placeholder="e.g. Alice"
+      value="${name}"
+      oninput="onNameChange(${id}, this)"
+    />
+    <div class="toggle-wrap">
+      <input type="radio" name="status-${id}" id="auth-${id}"
+        value="authorised" ${status === "authorised" ? "checked" : ""}
+        onchange="onStatusChange(${id}, 'authorised')">
+      <label for="auth-${id}">✓ Authorised</label>
+      <input type="radio" name="status-${id}" id="unauth-${id}"
+        value="unauthorised" ${status === "unauthorised" ? "checked" : ""}
+        onchange="onStatusChange(${id}, 'unauthorised')">
+      <label for="unauth-${id}">✕ Unauthorised</label>
+    </div>
+    <button type="button" class="remove-btn" onclick="removeUserRow(${id})" title="Remove user">✕</button>
+  `;
 
-  const panel = document.getElementById("explanation-panel");
-  const list = document.getElementById("explanation-list");
+  list.appendChild(row);
+  validateModel();
+}
+
+function removeUserRow(id) {
+  userRows = userRows.filter(r => r.id !== id);
+  document.querySelector(`.user-row[data-id="${id}"]`).remove();
+  validateModel();
+}
+
+function onNameChange(id, input) {
+  const row = userRows.find(r => r.id === id);
+  if (row) row.name = input.value.trim();
+  const valid = /^[A-Za-z][A-Za-z0-9_]*$/.test(input.value.trim());
+  input.classList.toggle("invalid", input.value.trim() !== "" && !valid);
+  validateModel();
+}
+
+function onStatusChange(id, status) {
+  const row = userRows.find(r => r.id === id);
+  if (row) row.status = status;
+  validateModel();
+}
+
+// ---------------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------------
+function validateModel() {
+  const hint = document.getElementById("model-hint");
+  const btn  = document.getElementById("verify-btn");
+
+  const validRows = userRows.filter(r => /^[A-Za-z][A-Za-z0-9_]*$/.test(r.name));
+  const authd     = validRows.filter(r => r.status === "authorised");
+  const invalids  = userRows.filter(r => r.name.trim() && !/^[A-Za-z][A-Za-z0-9_]*$/.test(r.name));
+
+  if (invalids.length > 0) {
+    hint.textContent = "⚠ Some names are invalid — names must start with a letter and contain only letters, numbers, or underscores.";
+    hint.className = "hint warn";
+    btn.disabled = true;
+    return;
+  }
+
+  if (validRows.length === 0) {
+    hint.textContent = "💡 Add at least one user to begin verification.";
+    hint.className = "hint";
+    btn.disabled = true;
+    return;
+  }
+
+  if (authd.length === 0) {
+    hint.textContent = "⚠ At least one authorised user is required to generate a valid proof.";
+    hint.className = "hint warn";
+    btn.disabled = true;
+    return;
+  }
+
+  hint.textContent = `✓ Model ready — ${authd.length} authorised, ${validRows.length - authd.length} unauthorised user(s) defined.`;
+  hint.className = "hint ok";
+  btn.disabled = false;
+}
+
+// ---------------------------------------------------------------------------
+// Verification
+// ---------------------------------------------------------------------------
+async function runVerification() {
+  const validRows = userRows.filter(r => /^[A-Za-z][A-Za-z0-9_]*$/.test(r.name));
+  const modelText = validRows.map(r => `${r.name}: ${r.status}`).join("\n");
+  const property  = document.querySelector('input[name="property"]:checked').value;
+
+  // Loading state
+  const btn     = document.getElementById("verify-btn");
+  const btnText = document.getElementById("btn-text");
+  const spinner = document.getElementById("btn-spinner");
+  btn.disabled            = true;
+  btnText.style.display   = "none";
+  spinner.style.display   = "block";
+  document.getElementById("output-box").style.display = "none";
+
+  try {
+    const response = await fetch("/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ property, model: modelText })
+    });
+    const data = await response.json();
+    showResults(data, property, validRows);
+  } catch (err) {
+    showResults({ result: "Error", explanation: "Could not connect to the backend server.", generatedLean: null }, property, validRows);
+  } finally {
+    btn.disabled          = false;
+    btnText.style.display = "block";
+    spinner.style.display = "none";
+    validateModel();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Results display
+// ---------------------------------------------------------------------------
+function showResults(data, property, rows) {
+  const outputBox  = document.getElementById("output-box");
+  const statusEl   = document.getElementById("result-status");
+  const list       = document.getElementById("explanation-list");
+  const leanPre    = document.getElementById("lean-source-display");
+  const leanWrap   = document.getElementById("lean-source-wrap");
+  const leanToggle = document.querySelector(".lean-toggle");
+
+  outputBox.style.display = "block";
   list.innerHTML = "";
-  panel.style.display = "block";
+  leanWrap.style.display = "none";
+  leanToggle.textContent = "▶ Show generated Lean 4 proof";
 
-  const verified = output.toLowerCase().includes("verified");
+  const isVerified = data.result && data.result.toLowerCase().includes("verified");
+  const isError    = data.result && data.result.toLowerCase() === "error";
 
-  const propertyLabels = {
-    access_control: "Access Control Security",
-    authentication: "Authentication Security",
-    integrity:      "Integrity"
-  };
+  if (isVerified) {
+    statusEl.className = "result-status verified";
+    statusEl.textContent = "✅ " + data.result;
+  } else if (isError) {
+    statusEl.className = "result-status error-state";
+    statusEl.textContent = "⚠️ " + data.result;
+  } else {
+    statusEl.className = "result-status failed";
+    statusEl.textContent = "❌ " + data.result;
+  }
 
-  const reasonMap = {
-    access_control: "Only authorised users are permitted access to protected resources.",
-    authentication: "Only authenticated users are permitted access to the system.",
-    integrity:      "Only authorised users are permitted to modify system data."
-  };
+  if (isVerified) {
+    const authd   = rows.filter(r => r.status === "authorised").map(r => r.name);
+    const unauthd = rows.filter(r => r.status === "unauthorised").map(r => r.name);
 
-  const authorisedLabel = {
-    access_control: "Verified users",
-    authentication: "Authenticated users",
-    integrity:      "Authorised users (can modify)"
-  };
+    const propMeta = {
+      access_control: {
+        title:        "Access Control Security",
+        authLabel:    "Permitted users",
+        unauthLabel:  "Denied users",
+        reason:       "Only authorised users are permitted access to protected resources."
+      },
+      authentication: {
+        title:        "Authentication Security",
+        authLabel:    "Authenticated users",
+        unauthLabel:  "Unauthenticated users",
+        reason:       "Only authenticated users are permitted access to the system."
+      },
+      integrity: {
+        title:        "Integrity",
+        authLabel:    "Authorised to modify",
+        unauthLabel:  "Blocked from modifying",
+        reason:       "Only authorised users are permitted to modify system data."
+      }
+    };
 
-  const unauthorisedLabel = {
-    access_control: "Rejected users",
-    authentication: "Unauthenticated users",
-    integrity:      "Unauthorised users (cannot modify)"
-  };
+    const p = propMeta[property] || { title: property, authLabel: "Authorised", unauthLabel: "Unauthorised", reason: "" };
 
-  if (verified && authorisedUsers.length > 0) {
     const items = [
-      `Property verified: ${propertyLabels[property] || property}`,
-      `${authorisedLabel[property] || "Authorised"}: ${authorisedUsers.join(", ")}`,
-      `${unauthorisedLabel[property] || "Unauthorised"}: ${unauthorisedUsers.join(", ") || "none"}`,
-      `Reason: ${reasonMap[property] || ""}`
+      { icon: "🔬", text: `Property verified: ${p.title}` },
+      { icon: "✅", text: `${p.authLabel}: ${authd.join(", ") || "none"}` },
+      { icon: "🚫", text: `${p.unauthLabel}: ${unauthd.join(", ") || "none"}` },
+      { icon: "📋", text: `Reason: ${p.reason}` },
+      { icon: "⚙️", text: "Verified by: Lean 4 theorem prover — proof obligations fully discharged." }
     ];
 
-    items.forEach(text => {
+    items.forEach(({ icon, text }) => {
       const li = document.createElement("li");
-      li.innerText = text;
+      li.innerHTML = `<span>${icon}</span><span>${text}</span>`;
       list.appendChild(li);
     });
 
   } else {
     const li = document.createElement("li");
-    li.innerText = verified
-      ? "Property verified with the provided model."
-      : "Verification failed. Check the Lean output above for details.";
+    li.innerHTML = `<span>ℹ️</span><span style="white-space:pre-wrap">${data.explanation || "No details available."}</span>`;
+    li.style.borderLeftColor = isError ? "#f57f17" : "#e53935";
     list.appendChild(li);
   }
-}
-</script>
 
+  if (data.generatedLean) {
+    leanPre.textContent = data.generatedLean;
+  }
+
+  outputBox.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function toggleLean() {
+  const wrap   = document.getElementById("lean-source-wrap");
+  const toggle = document.querySelector(".lean-toggle");
+  const open   = wrap.style.display === "block";
+  wrap.style.display   = open ? "none" : "block";
+  toggle.textContent   = open ? "▶ Show generated Lean 4 proof" : "▼ Hide generated Lean 4 proof";
+}
+
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+loadPreset("basic");
+validateModel();
+</script>
 </body>
 </html>
