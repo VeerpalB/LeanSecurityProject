@@ -332,7 +332,12 @@ app.post("/verify", async (req, res) => {
 // Start server
 // ---------------------------------------------------------------------------
 
-app.listen(PORT, () => {
-  console.log(`Backend running at http://localhost:${PORT}`);
-  console.log(`Using Lean at: ${LEAN_PATH}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend running at http://localhost:${PORT}`);
+    console.log(`Using Lean at: ${LEAN_PATH}`);
+  });
+}
+
+module.exports = app;
+ 

@@ -6,7 +6,7 @@
   <title>Secure System Verification</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* ── Extensions to style.css for new UI components ── */
+    /* Extensions to style.css for new UI components */
 
     /* Preset scenario buttons */
     .preset-bar {
@@ -33,6 +33,12 @@
     .preset-btn:hover {
       background-color: #1a237e;
       color: white;
+    }
+
+    .preset-btn.active {
+      background-color: #1a237e;
+      color: white;
+      border-color: #1a237e;
     }
 
     /* Section label */
@@ -178,45 +184,7 @@
       border-color: #1a237e;
     }
 
-    /* Property selector cards */
-    .property-grid {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin: 10px 0 4px;
-    }
-
-    .prop-option { display: none; }
-
-    .prop-label {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 14px 18px;
-      cursor: pointer;
-      transition: 0.2s;
-      min-width: 120px;
-    }
-
-    .prop-label:hover {
-      border-color: #1a237e;
-    }
-
-    .prop-option:checked + .prop-label {
-      border-color: #1a237e;
-      background-color: #e8eaf6;
-    }
-
-    .prop-icon { font-size: 22px; }
-
-    .prop-name {
-      font-size: 0.8em;
-      color: #1a237e;
-      font-weight: bold;
-    }
+    /* Property dropdown uses existing select styles from style.css */
 
     /* Validation hint */
     .hint {
@@ -358,28 +326,28 @@
 
   <form id="verification-form">
 
-    <!-- ── Preset Scenarios ── -->
+    <!-- Preset Scenarios -->
     <p style="font-size:0.85em; color:#555; margin-bottom:8px;">
       <em>Load a preset scenario or define your own model below:</em>
     </p>
     <div class="preset-bar">
       <button type="button" class="preset-btn" onclick="loadPreset('basic')">
-        ✅ Basic (Alice + Bob)
+        Basic (Alice + Bob)
       </button>
       <button type="button" class="preset-btn" onclick="loadPreset('attack')">
-        ⚠️ Attack Scenario
+        Attack Scenario
       </button>
       <button type="button" class="preset-btn" onclick="loadPreset('allauthd')">
-        🔵 All Authorised
+        All Authorised
       </button>
       <button type="button" class="preset-btn" onclick="loadPreset('large')">
-        👥 Larger Team
+        Larger Team
       </button>
     </div>
 
     <hr class="section-divider">
 
-    <!-- ── User Model Builder ── -->
+    <!-- User Model Builder -->
     <div class="section-label">Define users and their access level:</div>
 
     <div class="user-table-header">
@@ -391,44 +359,22 @@
     <div id="user-list"></div>
 
     <div id="model-hint" class="hint">
-      💡 Names must start with a letter and use only letters, numbers, or underscores (e.g. Alice, Bob2, Admin_1)
+      Names must start with a letter and use only letters, numbers, or underscores (e.g. Alice, Bob2, Admin_1)
     </div>
 
-    <button type="button" class="add-user-btn" onclick="addUserRow()">＋ Add user</button>
+    <button type="button" class="add-user-btn" onclick="addUserRow()">+ Add user</button>
 
     <hr class="section-divider">
 
-    <!-- ── Security Property ── -->
-    <label style="font-weight:bold; color:#1a237e;">Choose a security property:</label>
-    <div class="property-grid">
+    <!-- Security Property -->
+    <label for="property" style="font-weight:bold; color:#1a237e;">Choose a security property:</label>
+    <select id="property" name="property">
+      <option value="authentication">Authentication</option>
+      <option value="access_control">Access Control</option>
+      <option value="integrity">Integrity</option>
+    </select>
 
-      <div>
-        <input type="radio" name="property" id="prop-auth" class="prop-option" value="authentication" checked>
-        <label for="prop-auth" class="prop-label">
-          <span class="prop-icon">🔑</span>
-          <span class="prop-name">Authentication</span>
-        </label>
-      </div>
-
-      <div>
-        <input type="radio" name="property" id="prop-ac" class="prop-option" value="access_control">
-        <label for="prop-ac" class="prop-label">
-          <span class="prop-icon">🛡️</span>
-          <span class="prop-name">Access Control</span>
-        </label>
-      </div>
-
-      <div>
-        <input type="radio" name="property" id="prop-int" class="prop-option" value="integrity">
-        <label for="prop-int" class="prop-label">
-          <span class="prop-icon">🔒</span>
-          <span class="prop-name">Integrity</span>
-        </label>
-      </div>
-
-    </div>
-
-    <!-- ── Verify Button ── -->
+    <!-- Verify Button -->
     <button type="button" id="verify-btn" onclick="runVerification()">
       <span id="btn-text">Verify</span>
       <div class="spinner" id="btn-spinner"></div>
@@ -436,13 +382,13 @@
 
   </form>
 
-  <!-- ── Output ── -->
+  <!-- Output -->
   <div class="output" id="output-box" style="display:none;">
     <div id="result-status" class="result-status"></div>
     <div id="explanation-panel">
       <ul id="explanation-list"></ul>
     </div>
-    <button type="button" class="lean-toggle" onclick="toggleLean()">▶ Show generated Lean 4 proof</button>
+    <button type="button" class="lean-toggle" onclick="toggleLean()">Show generated Lean 4 proof</button>
     <div id="lean-source-wrap">
       <pre id="lean-source-display"></pre>
     </div>
@@ -487,16 +433,31 @@ const PRESETS = {
   ]
 };
 
+/**
+ * Loads a preset scenario into the user model builder.
+ * Clears the current model, populates it with the preset users,
+ * and highlights the selected preset button as active.
+ */
 function loadPreset(key) {
   userRows = [];
   rowCounter = 0;
   document.getElementById("user-list").innerHTML = "";
   PRESETS[key].forEach(u => addUserRow(u.name, u.status));
+
+  // Highlight the active preset button
+  document.querySelectorAll(".preset-btn").forEach(btn => btn.classList.remove("active"));
+  document.querySelector(`.preset-btn[onclick="loadPreset('${key}')"]`).classList.add("active");
 }
 
 // ---------------------------------------------------------------------------
 // User row management
 // ---------------------------------------------------------------------------
+
+/**
+ * Adds a new user row to the model builder.
+ * Each row contains a name input, an authorised/unauthorised toggle,
+ * and a remove button.
+ */
 function addUserRow(name = "", status = "authorised") {
   const id = rowCounter++;
   userRows.push({ id, name, status });
@@ -518,25 +479,32 @@ function addUserRow(name = "", status = "authorised") {
       <input type="radio" name="status-${id}" id="auth-${id}"
         value="authorised" ${status === "authorised" ? "checked" : ""}
         onchange="onStatusChange(${id}, 'authorised')">
-      <label for="auth-${id}">✓ Authorised</label>
+      <label for="auth-${id}">Authorised</label>
       <input type="radio" name="status-${id}" id="unauth-${id}"
         value="unauthorised" ${status === "unauthorised" ? "checked" : ""}
         onchange="onStatusChange(${id}, 'unauthorised')">
-      <label for="unauth-${id}">✕ Unauthorised</label>
+      <label for="unauth-${id}">Unauthorised</label>
     </div>
-    <button type="button" class="remove-btn" onclick="removeUserRow(${id})" title="Remove user">✕</button>
+    <button type="button" class="remove-btn" onclick="removeUserRow(${id})" title="Remove user">X</button>
   `;
 
   list.appendChild(row);
   validateModel();
 }
 
+/**
+ * Removes a user row from the model builder by its ID.
+ */
 function removeUserRow(id) {
   userRows = userRows.filter(r => r.id !== id);
   document.querySelector(`.user-row[data-id="${id}"]`).remove();
   validateModel();
 }
 
+/**
+ * Updates the stored name for a user row when the input changes.
+ * Also validates the name format and shows an error highlight if invalid.
+ */
 function onNameChange(id, input) {
   const row = userRows.find(r => r.id === id);
   if (row) row.name = input.value.trim();
@@ -545,6 +513,10 @@ function onNameChange(id, input) {
   validateModel();
 }
 
+/**
+ * Updates the stored access status for a user row when the toggle changes.
+ * Triggers revalidation so the Verify button state updates immediately.
+ */
 function onStatusChange(id, status) {
   const row = userRows.find(r => r.id === id);
   if (row) row.status = status;
@@ -554,6 +526,14 @@ function onStatusChange(id, status) {
 // ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
+
+/**
+ * Validates the current model and updates the hint message and Verify button.
+ * The Verify button is disabled if:
+ *   - Any name is invalid (contains illegal characters)
+ *   - No valid users have been defined
+ *   - No authorised users exist (required to generate a valid proof)
+ */
 function validateModel() {
   const hint = document.getElementById("model-hint");
   const btn  = document.getElementById("verify-btn");
@@ -563,27 +543,27 @@ function validateModel() {
   const invalids  = userRows.filter(r => r.name.trim() && !/^[A-Za-z][A-Za-z0-9_]*$/.test(r.name));
 
   if (invalids.length > 0) {
-    hint.textContent = "⚠ Some names are invalid — names must start with a letter and contain only letters, numbers, or underscores.";
+    hint.textContent = "Warning: Some names are invalid. Names must start with a letter and contain only letters, numbers, or underscores.";
     hint.className = "hint warn";
     btn.disabled = true;
     return;
   }
 
   if (validRows.length === 0) {
-    hint.textContent = "💡 Add at least one user to begin verification.";
+    hint.textContent = "Add at least one user to begin verification.";
     hint.className = "hint";
     btn.disabled = true;
     return;
   }
 
   if (authd.length === 0) {
-    hint.textContent = "⚠ At least one authorised user is required to generate a valid proof.";
+    hint.textContent = "Warning: At least one authorised user is required to generate a valid proof.";
     hint.className = "hint warn";
     btn.disabled = true;
     return;
   }
 
-  hint.textContent = `✓ Model ready — ${authd.length} authorised, ${validRows.length - authd.length} unauthorised user(s) defined.`;
+  hint.textContent = `Model ready: ${authd.length} authorised, ${validRows.length - authd.length} unauthorised user(s) defined.`;
   hint.className = "hint ok";
   btn.disabled = false;
 }
@@ -591,10 +571,16 @@ function validateModel() {
 // ---------------------------------------------------------------------------
 // Verification
 // ---------------------------------------------------------------------------
+
+/**
+ * Sends the current model and selected security property to the backend
+ * /verify endpoint. Displays a loading spinner while Lean runs, then
+ * shows the result once the response is received.
+ */
 async function runVerification() {
   const validRows = userRows.filter(r => /^[A-Za-z][A-Za-z0-9_]*$/.test(r.name));
   const modelText = validRows.map(r => `${r.name}: ${r.status}`).join("\n");
-  const property  = document.querySelector('input[name="property"]:checked').value;
+  const property  = document.getElementById('property').value;
 
   // Loading state
   const btn     = document.getElementById("verify-btn");
@@ -626,6 +612,12 @@ async function runVerification() {
 // ---------------------------------------------------------------------------
 // Results display
 // ---------------------------------------------------------------------------
+
+/**
+ * Displays the verification result returned by the backend.
+ * Shows a status banner, a human-readable explanation panel,
+ * and the generated Lean 4 proof source (collapsed by default).
+ */
 function showResults(data, property, rows) {
   const outputBox  = document.getElementById("output-box");
   const statusEl   = document.getElementById("result-status");
@@ -637,20 +629,17 @@ function showResults(data, property, rows) {
   outputBox.style.display = "block";
   list.innerHTML = "";
   leanWrap.style.display = "none";
-  leanToggle.textContent = "▶ Show generated Lean 4 proof";
+  leanToggle.textContent = "Show generated Lean 4 proof";
 
   const isVerified = data.result && data.result.toLowerCase().includes("verified");
   const isError    = data.result && data.result.toLowerCase() === "error";
 
   if (isVerified) {
     statusEl.className = "result-status verified";
-    statusEl.textContent = "✅ " + data.result;
-  } else if (isError) {
-    statusEl.className = "result-status error-state";
-    statusEl.textContent = "⚠️ " + data.result;
+    statusEl.textContent = data.result;
   } else {
     statusEl.className = "result-status failed";
-    statusEl.textContent = "❌ " + data.result;
+    statusEl.textContent = data.result;
   }
 
   if (isVerified) {
@@ -659,44 +648,50 @@ function showResults(data, property, rows) {
 
     const propMeta = {
       access_control: {
-        title:        "Access Control Security",
-        authLabel:    "Permitted users",
-        unauthLabel:  "Denied users",
-        reason:       "Only authorised users are permitted access to protected resources."
+        title:       "Access Control Security",
+        authLabel:   "Permitted users",
+        unauthLabel: "Denied users",
+        reason:      "Only authorised users are permitted access to protected resources."
       },
       authentication: {
-        title:        "Authentication Security",
-        authLabel:    "Authenticated users",
-        unauthLabel:  "Unauthenticated users",
-        reason:       "Only authenticated users are permitted access to the system."
+        title:       "Authentication Security",
+        authLabel:   "Authenticated users",
+        unauthLabel: "Unauthenticated users",
+        reason:      "Only authenticated users are permitted access to the system."
       },
       integrity: {
-        title:        "Integrity",
-        authLabel:    "Authorised to modify",
-        unauthLabel:  "Blocked from modifying",
-        reason:       "Only authorised users are permitted to modify system data."
+        title:       "Integrity",
+        authLabel:   "Authorised to modify",
+        unauthLabel: "Blocked from modifying",
+        reason:      "Only authorised users are permitted to modify system data."
       }
     };
 
-    const p = propMeta[property] || { title: property, authLabel: "Authorised", unauthLabel: "Unauthorised", reason: "" };
+    const p = propMeta[property] || {
+      title: property,
+      authLabel: "Authorised",
+      unauthLabel: "Unauthorised",
+      reason: ""
+    };
 
     const items = [
-      { icon: "🔬", text: `Property verified: ${p.title}` },
-      { icon: "✅", text: `${p.authLabel}: ${authd.join(", ") || "none"}` },
-      { icon: "🚫", text: `${p.unauthLabel}: ${unauthd.join(", ") || "none"}` },
-      { icon: "📋", text: `Reason: ${p.reason}` },
-      { icon: "⚙️", text: "Verified by: Lean 4 theorem prover — proof obligations fully discharged." }
+      "Property verified: " + p.title,
+      p.authLabel + ": " + (authd.join(", ") || "none"),
+      p.unauthLabel + ": " + (unauthd.join(", ") || "none"),
+      "Reason: " + p.reason,
+      "Verified by: Lean 4 theorem prover — proof obligations fully discharged."
     ];
 
-    items.forEach(({ icon, text }) => {
+    items.forEach(text => {
       const li = document.createElement("li");
-      li.innerHTML = `<span>${icon}</span><span>${text}</span>`;
+      li.textContent = text;
       list.appendChild(li);
     });
 
   } else {
     const li = document.createElement("li");
-    li.innerHTML = `<span>ℹ️</span><span style="white-space:pre-wrap">${data.explanation || "No details available."}</span>`;
+    li.style.whiteSpace = "pre-wrap";
+    li.textContent = data.explanation || "No details available.";
     li.style.borderLeftColor = isError ? "#f57f17" : "#e53935";
     list.appendChild(li);
   }
@@ -708,16 +703,19 @@ function showResults(data, property, rows) {
   outputBox.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+/**
+ * Toggles the visibility of the generated Lean 4 proof source panel.
+ */
 function toggleLean() {
   const wrap   = document.getElementById("lean-source-wrap");
   const toggle = document.querySelector(".lean-toggle");
   const open   = wrap.style.display === "block";
-  wrap.style.display   = open ? "none" : "block";
-  toggle.textContent   = open ? "▶ Show generated Lean 4 proof" : "▼ Hide generated Lean 4 proof";
+  wrap.style.display = open ? "none" : "block";
+  toggle.textContent = open ? "Show generated Lean 4 proof" : "Hide generated Lean 4 proof";
 }
 
 // ---------------------------------------------------------------------------
-// Init
+// Initialisation
 // ---------------------------------------------------------------------------
 loadPreset("basic");
 validateModel();
