@@ -278,7 +278,7 @@
       border-left: 3px solid #1a237e;
     }
 
-    /* Lean source toggle */
+    /* LEAN source toggle */
     .lean-toggle {
       background: none;
       border: none;
@@ -433,11 +433,8 @@ const PRESETS = {
   ]
 };
 
-/**
- * Loads a preset scenario into the user model builder.
- * Clears the current model, populates it with the preset users,
- * and highlights the selected preset button as active.
- */
+// Loads one of the predefined user scenarios into the UI.
+// This resets the current model and highlights the selected preset.
 function loadPreset(key) {
   userRows = [];
   rowCounter = 0;
@@ -453,11 +450,8 @@ function loadPreset(key) {
 // User row management
 // ---------------------------------------------------------------------------
 
-/**
- * Adds a new user row to the model builder.
- * Each row contains a name input, an authorised/unauthorised toggle,
- * and a remove button.
- */
+// Adds a new user row to the model builder UI.
+// Each row lets the user enter a name and choose their access level.
 function addUserRow(name = "", status = "authorised") {
   const id = rowCounter++;
   userRows.push({ id, name, status });
@@ -492,19 +486,15 @@ function addUserRow(name = "", status = "authorised") {
   validateModel();
 }
 
-/**
- * Removes a user row from the model builder by its ID.
- */
+//Removes a user row from the model builder by its ID.
 function removeUserRow(id) {
   userRows = userRows.filter(r => r.id !== id);
   document.querySelector(`.user-row[data-id="${id}"]`).remove();
   validateModel();
 }
 
-/**
- * Updates the stored name for a user row when the input changes.
- * Also validates the name format and shows an error highlight if invalid.
- */
+// Updates the name for a user and validates it.
+// Invalid names are highlighted in the UI.
 function onNameChange(id, input) {
   const row = userRows.find(r => r.id === id);
   if (row) row.name = input.value.trim();
@@ -527,13 +517,8 @@ function onStatusChange(id, status) {
 // Validation
 // ---------------------------------------------------------------------------
 
-/**
- * Validates the current model and updates the hint message and Verify button.
- * The Verify button is disabled if:
- *   - Any name is invalid (contains illegal characters)
- *   - No valid users have been defined
- *   - No authorised users exist (required to generate a valid proof)
- */
+// Checks if the current model is valid and updates the UI.
+// Disables the Verify button if the input is invalid or incomplete.
 function validateModel() {
   const hint = document.getElementById("model-hint");
   const btn  = document.getElementById("verify-btn");
@@ -572,11 +557,8 @@ function validateModel() {
 // Verification
 // ---------------------------------------------------------------------------
 
-/**
- * Sends the current model and selected security property to the backend
- * /verify endpoint. Displays a loading spinner while Lean runs, then
- * shows the result once the response is received.
- */
+// Sends the model to the backend for verification.
+// Shows a loading state whilst waiting for the LEAN result.
 async function runVerification() {
   const validRows = userRows.filter(r => /^[A-Za-z][A-Za-z0-9_]*$/.test(r.name));
   const modelText = validRows.map(r => `${r.name}: ${r.status}`).join("\n");
@@ -613,11 +595,8 @@ async function runVerification() {
 // Results display
 // ---------------------------------------------------------------------------
 
-/**
- * Displays the verification result returned by the backend.
- * Shows a status banner, a human-readable explanation panel,
- * and the generated Lean 4 proof source (collapsed by default).
- */
+// Displays the verification result in the UI,
+// including a summary and an optional LEAN proof output.
 function showResults(data, property, rows) {
   const outputBox  = document.getElementById("output-box");
   const statusEl   = document.getElementById("result-status");
@@ -703,9 +682,7 @@ function showResults(data, property, rows) {
   outputBox.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-/**
- * Toggles the visibility of the generated Lean 4 proof source panel.
- */
+// Shows or hides the generated LEAN proof.
 function toggleLean() {
   const wrap   = document.getElementById("lean-source-wrap");
   const toggle = document.querySelector(".lean-toggle");

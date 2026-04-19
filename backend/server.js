@@ -2,12 +2,11 @@
  * Backend Server — LeanSecurityProject
  *
  * This server acts as the integration layer between the frontend UI and the
- * Lean 4 formal verification engine.
+ * LEAN 4 formal verification engine.
  *
- * Key upgrade from prototype: the /verify endpoint now dynamically generates
- * a Lean proof file from the user's model input, executes it via the Lean CLI,
- * and returns a result based on real formal verification output — not hardcoded
- * responses.
+ * Connect the frontend UI to the LEAN 4 verifier. 
+ * It takes user input, generates a LEAN proof, runs it,
+ * and returns whether the property was verified.
  */
 
 const express = require("express");
@@ -31,7 +30,9 @@ app.use("/proofs", express.static(__dirname));
 // ---------------------------------------------------------------------------
 
 /**
- * Parses the user's textarea input into lists of authorised and unauthorised
+ * Converts the user input text into authorised and unauthorised user lists.
+ * Also filters out invalid names to prevent issues in the generated LEAN code.
+
  * users. Each line is expected in the format:  "Name: authorised" or
  * "Name: unauthorised"  (case-insensitive, extra whitespace tolerated).
  *
@@ -58,8 +59,8 @@ function parseModel(modelText) {
     const name = parts[0].trim();
     const status = parts[1].trim().toLowerCase();
 
-    // Sanitise: only allow valid Lean identifier characters in user names.
-    // This prevents injection into the generated Lean source.
+    // Only allow valid identifier names to avoid breaking the LEAN code
+    // or allowing unintended input into the generated proof
     if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(name)) return;
 
     if (status === "authorised") {
@@ -77,22 +78,18 @@ function parseModel(modelText) {
 }
 
 // ---------------------------------------------------------------------------
-// Lean Code Generators
+// LEAN Code Generators
 // ---------------------------------------------------------------------------
-// Each function produces a complete, self-contained Lean 4 source file as a
+// Each function produces a complete, self-contained LEAN 4 source file as a
 // string, parameterised by the parsed user model.
 //
 // All three proofs use the same contrapositive pattern:
 //   forall u, not authorised u -> not canDo u
-// Proven by intro + unfold + exact, which Lean 4 accepts cleanly for any
+// Proven by intro + unfold + exact, which LEAN 4 accepts cleanly for any
 // user inductive type regardless of how many constructors are present.
 
-/**
- * Generates a Lean 4 access control proof for the given user lists.
- *
- * Policy:  authorised users may access resources; others are denied.
- * Theorem: any user who is not authorised cannot access.
- */
+// Builds a LEAN proof for access control based on the user model
+// Unauthorised users should not be able to access the system.
 function generateAccessControlLean(authorised, unauthorised, allUsers) {
   const userConstructors = allUsers.join(" | ");
 
@@ -120,12 +117,8 @@ theorem access_control_is_secure :
 `;
 }
 
-/**
- * Generates a Lean 4 authentication proof for the given user lists.
- *
- * Policy:  only authenticated users may access the system.
- * Theorem: unauthenticated users cannot access.
- */
+// Builds a LEAN proof for access authentication based on the user model
+// Unauthenticated users should not be able to access the system.
 function generateAuthenticationLean(authorised, unauthorised, allUsers) {
   const userConstructors = allUsers.join(" | ");
 
@@ -153,12 +146,8 @@ theorem authentication_secure :
 `;
 }
 
-/**
- * Generates a Lean 4 integrity proof for the given user lists.
- *
- * Policy:  only authorised users may modify data.
- * Theorem: unauthorised users cannot modify.
- */
+// Builds a LEAN proof for integrity based on the user model
+// Unauthorised users should not be able to modify data in the system.
 function generateIntegrityLean(authorised, unauthorised, allUsers) {
   const userConstructors = allUsers.join(" | ");
 
@@ -187,16 +176,11 @@ theorem integrity_secure :
 }
 
 // ---------------------------------------------------------------------------
-// Lean Executor
+// LEAN Executor
 // ---------------------------------------------------------------------------
 
-/**
- * Writes a Lean source string to a temporary file, executes lean.exe on it,
- * and resolves with { success: boolean, output: string }.
- *
- * Uses os.tmpdir() so we never write into the project source tree.
- * The temp file is deleted after execution regardless of outcome.
- */
+// Runs the generated LEAN code by writing it to a temporary file
+// and executing the LEAN CLI. The file is deleted afterwards.
 function runLean(leanSource) {
   return new Promise((resolve) => {
     const tmpFile = path.join(os.tmpdir(), `lean_verify_${Date.now()}.lean`);
@@ -221,17 +205,14 @@ function runLean(leanSource) {
 // Verification Endpoint
 // ---------------------------------------------------------------------------
 
-/**
- * POST /verify
- *
- * Accepts: { property: string, model: string }
- * Returns: { result: string, explanation: string, proofFile: string | null,
- *            generatedLean: string }
- *
- * The generatedLean field is returned so the frontend can display the exact
- * Lean source that was submitted to the verifier — useful for transparency
- * and the demo video.
- */
+//POST /verify
+ //This is the main verification endpoint.
+ //Receives the user model and selected property,
+ //generates a LEAN proof, runs it and returns the result.
+ 
+ //The generatedLean field is returned so the frontend can display the exact
+ //LEAN source that was submitted to the verifier — useful for transparency.
+ 
 app.post("/verify", async (req, res) => {
   const { property, model } = req.body;
 
@@ -256,7 +237,7 @@ app.post("/verify", async (req, res) => {
     });
   }
 
-  // --- 2. Generate the appropriate Lean source ---
+  // --- 2. Generate the appropriate LEAN source ---
   let leanSource;
   let proofFile;
 
@@ -300,7 +281,7 @@ app.post("/verify", async (req, res) => {
     });
   }
 
-  // --- 3. Run Lean and return result ---
+  // --- 3. Run LEAN and return result ---
   const { success, output } = await runLean(leanSource);
 
   const userSummary =

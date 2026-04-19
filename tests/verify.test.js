@@ -3,8 +3,8 @@
  * 
  * Test suite for the LeanSecurityProject backend (/verify endpoint).
  * 
- * Uses Jest as the test runner and Supertest to send HTTP requests directly
- * against the Express app without opening a real network port.
+ * Tests for the /verify endpoint using Jest and Supertest.
+ * Covers parsing, verification logic and error cases.
  * 
  * Test coverage includes:
  *   - Unit tests: parseModel() function
