@@ -37,7 +37,7 @@ After installing elan, Lean 4 will be installed automatically when you first bui
 
 **Step 1 — Clone the repository**
 ```bash
-git clone https://github.com/YOUR_USERNAME/LeanSecurityProject.git
+git clone https://github.com/VeerpalB/LeanSecurityProject.git
 cd LeanSecurityProject
 ```
 
@@ -58,6 +58,7 @@ npm install supertest --save-dev
 lake build
 ```
 This may take a few minutes on first run as it downloads the Lean toolchain.
+If Lake not found, ensure elan is installed and restart your terminal.
 
 **Step 5 — Start the backend server**
 ```bash
@@ -66,7 +67,7 @@ node server.js
 ```
 You should see:
 Backend running at http://localhost:3000
-Using Lean at: C:\Users...\lean.exe
+Using Lean at: C:\Users...\lean.exe (the path shown depends on the user's system)
 
 **Step 6 — Open the application**
 
@@ -81,6 +82,7 @@ From the project root directory:
 ```bash
 node backend/node_modules/jest/bin/jest.js tests/verify.test.js --testTimeout=20000
 ```
+Note: run the above commands from the project root directory (LeanSecurityProject/), not from inside backend/
 
 All 26 tests should pass. Tests include unit tests of the model parser, integration tests of the /verify endpoint across all three security properties, and negative tests for error handling.
 
