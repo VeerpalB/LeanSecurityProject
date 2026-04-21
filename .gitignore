@@ -3,7 +3,8 @@
 *.olean
 *.ilean
 *.c
-*.json
+# Ignore only specific generated JSON if needed
+lake-manifest.json
 
 # ===== Node.js =====
 node_modules/
