@@ -26,12 +26,19 @@ Before running this project, ensure you have the following installed:
 Download from: https://nodejs.org/
 
 **2. Lean 4 via elan**
+
+**On Mac/Linux:**
+
 Install elan (the Lean version manager) by running in your terminal:
 curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
+After installation, restart your terminal.
 
-On Windows, download the installer from: https://github.com/leanprover/elan/releases
+**On Windows:**
+Download from: https://github.com/leanprover/elan/releases
+Download elan-x86_64-pc-windows-msvc.zip, extract and run the installer.
+After installation, restart your terminal.
 
-After installing elan, Lean 4 will be installed automatically when you first build the project.
+After installing elan, Lean 4 will be automatically downloaded when you first run `lake build`.
 
 ## Setup and Running Instructions
 
@@ -68,6 +75,13 @@ node server.js
 You should see:
 Backend running at http://localhost:3000
 Using Lean at: C:\Users...\lean.exe (the path shown depends on the user's system)
+
+Note: If you see an error saying lean.exe cannot be found, 
+open `backend/server.js` and update the `LEAN_PATH` variable (line 14) to match your system.
+
+You can find your Lean path by running:
+- Windows: `where lean`
+- Mac/Linux: `which lean`
 
 **Step 6 — Open the application**
 
