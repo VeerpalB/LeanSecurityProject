@@ -42,6 +42,8 @@ After installing elan, the correct Lean version will be downloaded automatically
 
 ## Setup and Running Instructions
 
+The commands below can be run in any terminal — including the integrated terminal in Visual Studio Code (Terminal → New Terminal), Windows PowerShell, or Mac Terminal. This project was however created within VSCode so it would be recommended to run terminal commands from here.
+
 **Step 1 — Clone the repository**
 ```bash
 git clone https://github.com/VeerpalB/LeanSecurityProject.git
