@@ -38,7 +38,7 @@ Download from: https://github.com/leanprover/elan/releases
 Download elan-x86_64-pc-windows-msvc.zip, extract and run the installer.
 After installation, restart your terminal.
 
-After installing elan, the correct Lean version will be downloaded automatically when you first run lake build in the project directory.
+After installing elan, the correct Lean version will be downloaded automatically when you first run "lake build" in the project directory.
 
 ## Setup and Running Instructions
 
