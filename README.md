@@ -112,19 +112,25 @@ All 26 tests should pass. Tests include unit tests of the model parser, integrat
 ## Project Structure
 LeanSecurityProject/
 ├── backend/
-│   ├── server.js              # Main backend server + proof generator
-│   ├── AccessControl.lean     # Reference Lean proof (access control)
-│   ├── Authentication.lean    # Reference Lean proof (authentication)
-│   ├── Integrity.lean         # Reference Lean proof (integrity)
-│   └── package.json
+│   ├── server.js                  # Main backend server + proof generator
+│   ├── AccessControl.lean         # Reference Lean proof (access control)
+│   ├── Authentication.lean        # Reference Lean proof (authentication)
+│   ├── Integrity.lean             # Reference Lean proof (integrity)
+│   ├── SecurityVerification.lean  # Core verification logic
+│   ├── Main.lean                  # Lean entry point for backend proofs
+│   ├── package.json               # Backend dependencies and scripts
+│   └── package-lock.json          # Dependency lock file
 ├── frontend/
-│   ├── index.html             # Frontend interface
-│   └── style.css              # Stylesheet
+│   ├── index.html                 # Frontend interface
+│   └── style.css                  # Stylesheet
 ├── tests/
-│   └── verify.test.js         # Jest + Supertest test suite
-├── LeanSecurityProject/       # Lean project files
-├── lakefile.toml              # Lake build configuration
-├── lean-toolchain             # Lean version specification
+│   └── verify.test.js             # Jest + Supertest test suite
+├── LeanSecurityProject/
+│   └── Basic.lean                 # Core Lean definitions
+├── .gitignore                     # Git ignore rules
+├── jest.config.json               # Jest configuration
+├── lakefile.toml                  # Lake build configuration
+├── lean-toolchain                 # Lean version specification
 └── README.md
 
 ## Technologies Used
