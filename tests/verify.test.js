@@ -141,7 +141,7 @@ describe("Unit Tests — parseModel()", () => {
 // ---------------------------------------------------------------------------
 describe("Integration Tests — POST /verify", () => {
 
-  // ── Access Control ──────────────────────────────────────────────────────
+  // Access Control
 
   test("TC-I01: Access control — basic model returns Verified", async () => {
     const res = await request(app)
@@ -172,7 +172,7 @@ describe("Integration Tests — POST /verify", () => {
     expect(res.body.result).toBe("Verified");
   }, 20000);
 
-  // ── Authentication ───────────────────────────────────────────────────────
+  //Authentication 
 
   test("TC-I04: Authentication — basic model returns Verified", async () => {
     const res = await request(app)
@@ -203,7 +203,7 @@ describe("Integration Tests — POST /verify", () => {
     expect(res.body.result).toBe("Verified");
   }, 20000);
 
-  // ── Integrity ────────────────────────────────────────────────────────────
+  // Integrity 
 
   test("TC-I07: Integrity — basic model returns Verified", async () => {
     const res = await request(app)
@@ -225,7 +225,7 @@ describe("Integration Tests — POST /verify", () => {
     expect(res.body.result).toBe("Verified");
   }, 20000);
 
-  // ── Response structure ────────────────────────────────────────────────────
+  // Response structure 
 
   test("TC-I09: Response always contains result, explanation, proofFile, generatedLean", async () => {
     const res = await request(app)
@@ -256,7 +256,7 @@ describe("Integration Tests — POST /verify", () => {
     expect(res.body.generatedLean).toContain("Eve");
   }, 20000);
 
-  // ── Negative / Error cases ────────────────────────────────────────────────
+  // Negative / Error cases 
 
   test("TC-N01: Empty model returns Error", async () => {
     const res = await request(app)
@@ -282,7 +282,7 @@ describe("Integration Tests — POST /verify", () => {
       .post("/verify")
       .send({ property: "authentication", model: INVALID_NAMES });
 
-    // After sanitisation, only Bob remains — should still verify
+    // After sanitisation, only valid entries remain (Bob) - should still verify
     expect(res.statusCode).toBe(200);
     // Bob is authorised so it should verify
     expect(res.body.result).toBe("Verified");
