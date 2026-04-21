@@ -1,6 +1,6 @@
 # LeanSecurityProject
 ## Formal Methods for Security Verification
-
+ 
 A web-based formal verification system that uses the Lean 4 theorem prover to mathematically prove security properties — access control, authentication and integrity — from user-defined models.
 
 ## Project Overview
