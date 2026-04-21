@@ -38,7 +38,7 @@ Download from: https://github.com/leanprover/elan/releases
 Download elan-x86_64-pc-windows-msvc.zip, extract and run the installer.
 After installation, restart your terminal.
 
-After installing elan, Lean 4 will be automatically downloaded when you first run `lake build`.
+After installing elan, the correct Lean version will be downloaded automatically when you first run lake build in the project directory.
 
 ## Setup and Running Instructions
 
@@ -65,7 +65,7 @@ npm install supertest --save-dev
 lake build
 ```
 This may take a few minutes on first run as it downloads the Lean toolchain.
-If Lake not found, ensure elan is installed and restart your terminal.
+If Lake is not found, ensure elan is installed and restart your terminal.
 
 **Step 5 — Start the backend server**
 ```bash
@@ -77,7 +77,7 @@ Backend running at http://localhost:3000
 Using Lean at: C:\Users...\lean.exe (the path shown depends on the user's system)
 
 Note: If you see an error saying lean.exe cannot be found, 
-open `backend/server.js` and update the `LEAN_PATH` variable (line 14) to match your system.
+open `backend/server.js` and update the `LEAN_PATH` variable (line 22 in server.js) to match your system.
 
 You can find your Lean path by running:
 - Windows: `where lean`
@@ -96,7 +96,7 @@ From the project root directory:
 ```bash
 node backend/node_modules/jest/bin/jest.js tests/verify.test.js --testTimeout=20000
 ```
-Note: run the above commands from the project root directory (LeanSecurityProject/), not from inside backend/
+### Note: run the above commands from the project root directory (LeanSecurityProject/), not from inside backend/
 
 All 26 tests should pass. Tests include unit tests of the model parser, integration tests of the /verify endpoint across all three security properties, and negative tests for error handling.
 
